@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard IoT - Taller 5</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f9; padding: 20px; }
+        .contenedor { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background-color: #333; color: white; }
+        .alerta-roja { background-color: #ffcccc !important; color: #990000; font-weight: bold; }
+        .estado-verde { background-color: #ccffcc !important; color: #006600; }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor">
+        <h1>Monitoreo ESP32 en Tiempo Real</h1>
+        <p>Actualizando cada 10 segundos...</p>
+
+        <div>
+            <h3 id="indicador-temp">Temperatura: Esperando datos...</h3>
+            <h3 id="indicador-agua">Nivel de Agua: Esperando datos...</h3>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Dispositivo</th>
+                    <th>Temperatura (°C)</th>
+                    <th>Humedad (%)</th>
+                    <th>Nivel de Agua (0-4)</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-datos">
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function obtenerDatos() {
+            try {
+                const respuesta = await fetch('https://female-advisor-murray-grove.trycloudflare.com/historico');
+                const datos = await respuesta.json();
+                
+                if (datos.length > 0) {
+                    actualizarTabla(datos);
+                    evaluarAlertas(datos[0]);
+                }
+            } catch (error) {
+                console.error("Error conectando al backend:", error);
+            }
+        }
+
+        function actualizarTabla(datos) {
+            const cuerpoTabla = document.getElementById('tabla-datos');
+            cuerpoTabla.innerHTML = '';
+            
+            datos.forEach(dato => {
+                const fila = `<tr>
+                    <td>${dato.deviceId}</td>
+                    <td>${dato.temperatura}</td>
+                    <td>${dato.humedad}</td>
+                    <td>${dato.nivelAgua}</td>
+                </tr>`;
+                cuerpoTabla.innerHTML += fila;
+            });
+        }
+
+        function evaluarAlertas(ultimoDato) {
+            const indTemp = document.getElementById('indicador-temp');
+            const indAgua = document.getElementById('indicador-agua');
+
+            if (ultimoDato.temperatura > 30) {
+                indTemp.textContent = `ALERTA: Temperatura Alta (${ultimoDato.temperatura}°C)`;
+                indTemp.className = 'alerta-roja';
+            } else {
+                indTemp.textContent = `Temperatura Normal (${ultimoDato.temperatura}°C)`;
+                indTemp.className = 'estado-verde';
+            }
+
+            if (ultimoDato.nivelAgua <= 1) {
+                indAgua.textContent = `ALERTA: Nivel de Agua Crítico (${ultimoDato.nivelAgua})`;
+                indAgua.className = 'alerta-roja';
+            } else {
+                indAgua.textContent = `Nivel de Agua Óptimo (${ultimoDato.nivelAgua})`;
+                indAgua.className = 'estado-verde';
+            }
+        }
+
+        obtenerDatos();
+        setInterval(obtenerDatos, 10000);
+    </script>
+</body>
+</html>
