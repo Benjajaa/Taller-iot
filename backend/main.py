@@ -14,7 +14,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MONGO_URI = "mongodb+srv://admin_iot:8UemVfllQwCK5S0R@cluster0.itw0467.mongodb.net/?appName=Cluster0"
+MONGO_URI = "mongodb+srv://admin_iot:contraseña@cluster0.itw0467.mongodb.net/?appName=Cluster0"
 mongo_client = AsyncIOMotorClient(MONGO_URI)
 database = mongo_client.taller_iot 
 sensor_collection = database.get_collection("sensor_data")
